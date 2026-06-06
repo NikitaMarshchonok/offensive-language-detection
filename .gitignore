@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local environment
+.env
+.DS_Store
+
+# Raw and processed data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Generated outputs and trained models
+outputs/
+outputs_final/
+outputs_official_test/
+*.joblib
+*.pkl
+
+# Archives
+*.zip
+
+# Logs
+*.log
