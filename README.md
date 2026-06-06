@@ -1,107 +1,259 @@
 # Offensive Language Detection in Social Media Texts
 
-Practical project for the course **Advanced Techniques in Information Retrieval** / Software Engineering master's degree.
+This project implements an end-to-end machine learning pipeline for offensive language detection in social media texts.
 
-## 1. Project idea
+The goal is to classify a text message as one of two classes:
 
-The goal of this project is to build and evaluate a machine learning system that detects offensive language in short social-media texts.
+- `NOT` — not offensive
+- `OFF` — offensive
 
-The task is binary classification:
+The project was developed as a practical Software Engineering / Information Retrieval course project. It follows the full experimental pipeline: dataset collection, preprocessing, text representation, model training, evaluation, reporting, and presentation.
+
+---
+
+## Project Goal
+
+The main research question is:
+
+> How effective are classical machine learning models with TF-IDF text representation for offensive language detection in social media texts?
+
+The project compares several classical machine learning models and evaluates them on the official OLID Level A test set.
+
+---
+
+## Dataset
+
+The project uses the **OLID dataset** from **OffensEval / SemEval 2019**.
+
+The selected task is **Level A binary classification**:
+
+- `NOT` — not offensive
+- `OFF` — offensive
+
+Dataset files are **not included** in this repository. They should be downloaded separately from the official OLID source and placed into:
 
 ```text
-Input: social-media text
-Output: OFFENSIVE or NOT_OFFENSIVE
+data/raw/
 ```
 
-The project follows the required practical-project pipeline:
+Expected files:
 
 ```text
-Dataset → Preprocessing → Representation Model → Learning Model → Evaluation → Report → Presentation
+data/raw/olid-training-v1.0.tsv
+data/raw/testset-levela.tsv
+data/raw/labels-levela.csv
 ```
 
-## 2. Dataset
-
-Recommended dataset:
-
-**OLID — Offensive Language Identification Dataset**, used in **OffensEval / SemEval 2019 Task 6**.
-
-For this project we focus on **Sub-task A**:
+The official test set is created by joining:
 
 ```text
-OFF = offensive
-NOT = not offensive
+data/raw/testset-levela.tsv
+data/raw/labels-levela.csv
 ```
 
-The project also supports the Hugging Face `tweet_eval` offensive split as an easy fallback for running the code quickly.
+The generated labeled test file is saved locally as:
 
-## 3. Methods
+```text
+data/processed/olid-test-levela-labeled.tsv
+```
 
-The project compares two families of approaches:
+This generated file is not committed to GitHub.
 
-### Classical Machine Learning
+---
+
+## Methodology
+
+The project pipeline includes:
+
+1. Loading the OLID dataset
+2. Preparing the official Level A test set
+3. Cleaning and preprocessing text
+4. Representing text using TF-IDF
+5. Training classical machine learning models
+6. Evaluating models using standard classification metrics
+7. Saving metrics, confusion matrices, and report-ready assets
+
+---
+
+## Text Preprocessing
+
+For classical machine learning models, the text is cleaned before vectorization.
+
+The preprocessing includes:
+
+- lowercasing
+- removing URLs
+- removing user mentions
+- removing extra spaces
+- keeping the pipeline simple and reproducible
+
+Raw text examples are not printed in the terminal output, README, or report assets for ethical and safety reasons.
+
+---
+
+## Text Representation
+
+The project uses **TF-IDF** as the main text representation method.
+
+TF-IDF converts text into numerical features by assigning higher importance to words that are frequent in a document but less frequent across the full dataset.
+
+The implementation uses unigram and bigram features:
+
+```text
+ngram_range = (1, 2)
+max_features = 50,000
+```
+
+---
+
+## Models
+
+The following models were implemented and compared:
 
 1. **TF-IDF + Logistic Regression**
 2. **TF-IDF + Linear SVM**
+3. **TF-IDF + Complement Naive Bayes**
 
-### Transformer-Based Model
+These models were selected because they are strong classical baselines for text classification and are easy to interpret, reproduce, and evaluate.
 
-3. **DistilBERT / BERT fine-tuning**
+---
 
-The transformer model is optional because it requires more compute.
+## Evaluation Metrics
 
-## 4. Evaluation metrics
+The models were evaluated using:
 
-The models are evaluated using:
+- Accuracy
+- Precision for the offensive class
+- Recall for the offensive class
+- F1-score for the offensive class
+- Macro F1-score
+- Confusion matrix
+
+The most important metrics for this task are **Macro F1-score** and **F1-score for the offensive class**, because the dataset is imbalanced and accuracy alone can be misleading.
+
+---
+
+## Final Results
+
+The models were evaluated on the official OLID Level A test set.
+
+The official test set contains:
 
 ```text
-Accuracy
-Precision
-Recall
-F1-score
-Macro F1-score
-Confusion Matrix
+860 examples
+620 NOT
+240 OFF
 ```
 
-Main metric: **Macro F1-score**, because offensive-language datasets may be imbalanced.
+| Model | Accuracy | Precision OFF | Recall OFF | F1 OFF | Macro F1 |
+|---|---:|---:|---:|---:|---:|
+| TF-IDF + Logistic Regression | 0.7791 | 0.6033 | 0.6083 | 0.6058 | 0.7262 |
+| TF-IDF + Complement Naive Bayes | 0.7988 | 0.7134 | 0.4667 | 0.5642 | 0.7167 |
+| TF-IDF + Linear SVM | 0.7744 | 0.6009 | 0.5708 | 0.5855 | 0.7153 |
 
-## 5. Project structure
+Although **Complement Naive Bayes** achieved the highest accuracy, **Logistic Regression** achieved the best Macro F1-score and the best F1-score for the offensive class. Therefore, **TF-IDF + Logistic Regression** was selected as the best model in this experiment.
+
+---
+
+## Visual Results
+
+### Accuracy Comparison
+
+![Accuracy Comparison](reports/assets/model_comparison_accuracy.png)
+
+### Macro F1-score Comparison
+
+![Macro F1-score Comparison](reports/assets/model_comparison_macro_f1.png)
+
+### Offensive-Class F1-score Comparison
+
+![Offensive-Class F1-score Comparison](reports/assets/model_comparison_offensive_f1.png)
+
+### Logistic Regression Confusion Matrix
+
+![Logistic Regression Confusion Matrix](reports/assets/tfidf_logistic_regression_confusion_matrix.png)
+
+### Linear SVM Confusion Matrix
+
+![Linear SVM Confusion Matrix](reports/assets/tfidf_linear_svm_confusion_matrix.png)
+
+### Complement Naive Bayes Confusion Matrix
+
+![Complement Naive Bayes Confusion Matrix](reports/assets/tfidf_complement_naive_bayes_confusion_matrix.png)
+
+---
+
+## Interpretation of Results
+
+The Logistic Regression model achieved the strongest balance between overall performance and offensive-class detection.
+
+Its confusion matrix shows:
+
+```text
+Actual NOT correctly classified as NOT: 524
+Actual NOT incorrectly classified as OFF: 96
+Actual OFF incorrectly classified as NOT: 94
+Actual OFF correctly classified as OFF: 146
+```
+
+This means that the model correctly detected 146 out of 240 offensive examples.
+
+The Linear SVM model performed similarly, but it detected fewer offensive examples. Complement Naive Bayes achieved higher accuracy, but its recall for the offensive class was lower. This means it missed more offensive texts.
+
+For this reason, Logistic Regression is the most suitable model among the tested classical approaches.
+
+---
+
+## Project Structure
 
 ```text
 offensive-language-detection/
 │
 ├── data/
-│   ├── raw/                 # local datasets, not committed to Git
-│   ├── processed/           # processed data, not committed to Git
+│   ├── raw/
+│   │   └── .gitkeep
+│   ├── processed/
+│   │   └── .gitkeep
 │   └── README.md
 │
 ├── notebooks/
 │   └── 01_offensive_language_detection.ipynb
 │
+├── reports/
+│   ├── assets/
+│   │   ├── model_comparison_accuracy.png
+│   │   ├── model_comparison_macro_f1.png
+│   │   ├── model_comparison_offensive_f1.png
+│   │   ├── tfidf_logistic_regression_confusion_matrix.png
+│   │   ├── tfidf_linear_svm_confusion_matrix.png
+│   │   └── tfidf_complement_naive_bayes_confusion_matrix.png
+│   ├── final_report.md
+│   ├── final_report_template.md
+│   ├── model_comparison_official_test.csv
+│   └── presentation_outline.md
+│
 ├── src/
+│   ├── __init__.py
 │   ├── data_loader.py
 │   ├── preprocessing.py
 │   ├── evaluate.py
+│   ├── prepare_official_test.py
 │   ├── train_classical.py
-│   ├── train_transformer.py
-│   └── run_all.py
-│
-├── outputs/
-│   ├── figures/             # confusion matrix images
-│   ├── metrics/             # JSON/CSV metrics
-│   └── models/              # trained models, not committed to Git
-│
-├── reports/
-│   ├── final_report_template.md
-│   └── presentation_outline.md
+│   ├── plot_final_results.py
+│   ├── run_final_experiment.py
+│   ├── run_all.py
+│   └── train_transformer.py
 │
 ├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
 
-## 6. Installation
+---
 
-Create a virtual environment:
+## Installation
+
+Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
@@ -114,61 +266,149 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-## 7. Run classical models
+---
 
-### Option A — with Hugging Face fallback
+## How to Run
 
-```bash
-python -m src.train_classical --source hf_tweet_eval
+### 1. Download the Dataset
+
+Download the OLID dataset and place the required files in:
+
+```text
+data/raw/
 ```
 
-### Option B — with local OLID file
-
-Put the OLID training file here:
+Required files:
 
 ```text
 data/raw/olid-training-v1.0.tsv
+data/raw/testset-levela.tsv
+data/raw/labels-levela.csv
 ```
 
-Then run:
+### 2. Run the Full Final Experiment
 
 ```bash
-python -m src.train_classical --source local --train_path data/raw/olid-training-v1.0.tsv
+python -m src.run_final_experiment
 ```
 
-## 8. Run optional transformer model
+This command:
+
+1. prepares the official OLID Level A test set
+2. trains all classical models
+3. evaluates the models
+4. saves metrics, confusion matrices, and trained models locally
+
+### 3. Generate Report Assets
 
 ```bash
-python -m src.train_transformer --source hf_tweet_eval --epochs 2
+python -m src.plot_final_results
 ```
 
-For local OLID:
-
-```bash
-python -m src.train_transformer --source local --train_path data/raw/olid-training-v1.0.tsv --epochs 2
-```
-
-## 9. Expected outputs
-
-After running the classical training script, the project creates:
+This command creates report-ready plots and copies them into:
 
 ```text
-outputs/metrics/dataset_summary.json
-outputs/metrics/tfidf_logistic_regression.json
-outputs/metrics/tfidf_linear_svm.json
-outputs/metrics/model_comparison.csv
-outputs/figures/tfidf_logistic_regression_confusion_matrix.png
-outputs/figures/tfidf_linear_svm_confusion_matrix.png
-outputs/models/tfidf_logistic_regression.joblib
-outputs/models/tfidf_linear_svm.joblib
+reports/assets/
 ```
 
-## 10. Ethical note
+---
 
-The dataset may contain harmful language. For this reason, the code avoids printing raw examples in terminal output, report templates, and figures. The evaluation focuses on aggregate metrics only.
+## Outputs
 
-## 11. References
+The final experiment creates local output folders:
 
-- Zampieri et al. (2019). SemEval-2019 Task 6: Identifying and Categorizing Offensive Language in Social Media.
-- OLID / OffensEval 2019 official dataset page.
-- Devlin et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
+```text
+outputs_final/metrics/
+outputs_final/figures/
+outputs_final/models/
+```
+
+These generated files are not committed to GitHub.
+
+Report-ready assets are stored in:
+
+```text
+reports/assets/
+```
+
+The final comparison table is stored in:
+
+```text
+reports/model_comparison_official_test.csv
+```
+
+---
+
+## Reproducibility
+
+The full project can be reproduced with the following sequence:
+
+```bash
+python -m src.prepare_official_test
+python -m src.train_classical \
+  --source local \
+  --train_path data/raw/olid-training-v1.0.tsv \
+  --test_path data/processed/olid-test-levela-labeled.tsv \
+  --text_col tweet \
+  --label_col subtask_a \
+  --output_dir outputs_final
+python -m src.plot_final_results
+```
+
+Alternatively, the main experiment can be launched with:
+
+```bash
+python -m src.run_final_experiment
+```
+
+---
+
+## Ethical Note
+
+This project works with offensive language data. Raw text examples are not printed in terminal output, README, or report assets.
+
+The focus of the project is on:
+
+- statistical analysis
+- responsible model evaluation
+- text classification methodology
+- comparison of machine learning approaches
+
+The project does not reproduce offensive examples in the documentation.
+
+---
+
+## Limitations
+
+The project uses classical machine learning models with TF-IDF representation. These methods are strong baselines, but they do not fully capture deep context, sarcasm, implicit meaning, or complex social language patterns.
+
+Another limitation is class imbalance: the `NOT` class is larger than the `OFF` class. This is why Macro F1-score and offensive-class F1-score were used as important evaluation metrics.
+
+---
+
+## Future Work
+
+Possible future improvements include:
+
+- fine-tuning BERT or DistilBERT
+- testing transformer-based contextual embeddings
+- improving offensive-class recall
+- applying cross-validation
+- testing on additional datasets
+- adding explainability methods for model decisions
+
+---
+
+## Main Conclusion
+
+Classical machine learning models with TF-IDF representation can provide a solid and reproducible baseline for offensive language detection.
+
+In this experiment, **TF-IDF + Logistic Regression** achieved the best balance between overall performance and offensive-class detection:
+
+```text
+Accuracy: 0.7791
+Macro F1-score: 0.7262
+Offensive-class F1-score: 0.6058
+```
+
+Therefore, Logistic Regression was selected as the best classical model in this project.
