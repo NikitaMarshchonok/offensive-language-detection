@@ -2,7 +2,7 @@
 
 ## Slide 1 — Title
 
-**Offensive Language Detection in Social Media Texts Using Machine Learning and Transformer-Based Models**
+**Offensive Language Detection in Social Media Texts: Classical Baselines and a Transformer-Based Approach**
 
 Student: Nikita Marshchonok  
 M.Sc. Software Engineering
@@ -12,27 +12,32 @@ M.Sc. Software Engineering
 ## Slide 2 — Problem
 
 - Social media contains large amounts of user-generated content.
-- Some posts may include offensive or harmful language.
+- Some posts include offensive or harmful language.
 - Manual moderation is expensive and difficult to scale.
-- Automatic detection can support moderation workflows.
+- Automatic detection can support human moderation workflows.
 
 ---
 
-## Slide 3 — Goal and Research Question
+## Slide 3 — Research Question
 
-**Goal:** Build and evaluate a practical offensive-language detection system.
-
-**Research question:**
-
-How effective are classical ML models compared to transformer-based models for offensive language detection?
+How effective are classical TF-IDF machine-learning baselines for offensive-language detection, and how can a recent transformer-based approach be integrated into the same experimental pipeline?
 
 ---
 
-## Slide 4 — Dataset
+## Slide 4 — Scientific Basis
+
+- OLID / OffensEval introduced a standard offensive-language detection benchmark.
+- Recent research uses BERT-family and transformer-based models.
+- SemEval-2023 EDOS systems use models such as BERT, RoBERTa, DistilBERT, HateBERT, and XLM-T.
+- 2024 work emphasizes cross-lingual and multilingual offensive-language detection.
+
+---
+
+## Slide 5 — Dataset
 
 - Dataset: OLID / OffensEval 2019
-- Domain: English social-media posts
-- Task used in this project: Sub-task A
+- Domain: English tweets
+- Task: Level A binary classification
 - Labels:
   - NOT — not offensive
   - OFF — offensive
@@ -41,82 +46,75 @@ Ethical note: raw harmful examples are not shown.
 
 ---
 
-## Slide 5 — Pipeline
+## Slide 6 — Pipeline
 
 ```text
-Dataset → Preprocessing → Representation → Model Training → Evaluation → Results
+OLID Dataset → Preprocessing → Representation → Model Training → Evaluation → Report Assets
 ```
 
 ---
 
-## Slide 6 — Preprocessing
+## Slide 7 — Methods
 
-For classical models:
-
-- Lowercasing
-- URL normalization/removal
-- User mention normalization
-- Symbol cleaning
-- Extra-space normalization
-
-For transformer models:
-
-- Minimal cleaning
-- Transformer tokenizer
+| Model | Representation | Role |
+|---|---|---|
+| Logistic Regression | TF-IDF | Classical baseline |
+| Linear SVM | TF-IDF | Classical baseline |
+| Complement Naive Bayes | TF-IDF | Classical baseline |
+| Logistic Regression | Transformer embeddings | Recent transformer-based approach |
 
 ---
 
-## Slide 7 — Models
+## Slide 8 — Transformer-Based Approach
 
-| Model | Representation |
-|---|---|
-| Logistic Regression | TF-IDF |
-| Linear SVM | TF-IDF |
-| DistilBERT / BERT | Transformer embeddings |
+- Encoder: `sentence-transformers/all-MiniLM-L6-v2`
+- Representation: contextual sentence embeddings
+- Classifier: Logistic Regression
+- Purpose: compare modern contextual representations with sparse TF-IDF baselines
+- Full DistilBERT-style fine-tuning script is also included
 
 ---
 
-## Slide 8 — Evaluation Metrics
+## Slide 9 — Evaluation Metrics
 
 - Accuracy
-- Precision
-- Recall
-- F1-score
+- Precision for OFF
+- Recall for OFF
+- F1-score for OFF
 - Macro F1-score
-- Confusion Matrix
+- Confusion matrix
 
 Main metric: **Macro F1-score**
 
 ---
 
-## Slide 9 — Results
+## Slide 10 — Verified Baseline Results
 
-Insert the final comparison table from:
+| Model | Accuracy | F1 OFF | Macro F1 |
+|---|---:|---:|---:|
+| Transformer Embeddings + Logistic Regression | 0.7779 | 0.6188 | 0.7310 |
+| TF-IDF + Logistic Regression | 0.7791 | 0.6058 | 0.7262 |
+| TF-IDF + Complement Naive Bayes | 0.7988 | 0.5642 | 0.7167 |
+| TF-IDF + Linear SVM | 0.7744 | 0.5855 | 0.7153 |
 
-```text
-outputs/metrics/model_comparison.csv
-```
-
-Insert confusion matrix images from:
-
-```text
-outputs/figures/
-```
+Best overall model: **Transformer Embeddings + Logistic Regression**.
+Best classical baseline: **TF-IDF + Logistic Regression**.
 
 ---
 
-## Slide 10 — Discussion
+## Slide 11 — Discussion
 
-- Classical models are fast and easy to deploy.
-- Transformer models understand context better but require more resources.
-- False positives and false negatives are important ethical concerns.
-- The system should support human moderation, not replace it fully.
+- TF-IDF baselines are fast and reproducible.
+- They are limited in contextual understanding.
+- Transformer embeddings better match recent NLP research and improve offensive-class F1.
+- Offensive-class recall remains challenging.
+- The system should support human moderation rather than replace it.
 
 ---
 
-## Slide 11 — Conclusion
+## Slide 12 — Conclusion
 
-- A complete offensive-language detection pipeline was implemented.
-- TF-IDF models provide strong baselines.
-- Transformer-based models can be added for stronger contextual understanding.
-- The project satisfies the practical requirements: dataset, preprocessing, representation, learning model, evaluation, report, and presentation.
+- The revised project is based on recent scientific work.
+- Older TF-IDF methods are clearly positioned as baselines.
+- A transformer-based approach is implemented and evaluated for modern comparison.
+- The report includes updated literature, method descriptions, references, and verified baseline results.

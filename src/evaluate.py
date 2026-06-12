@@ -6,10 +6,8 @@ import json
 from pathlib import Path
 from typing import Dict, Iterable
 
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import (
-    ConfusionMatrixDisplay,
     accuracy_score,
     classification_report,
     confusion_matrix,
@@ -62,12 +60,38 @@ def save_confusion_matrix_figure(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cm = confusion_matrix(y_true, y_pred)
-    display = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=CLASS_NAMES)
+    from PIL import Image, ImageDraw, ImageFont
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    display.plot(ax=ax, values_format="d")
-    ax.set_title(title)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=160)
-    plt.close(fig)
+    cm = confusion_matrix(y_true, y_pred)
+
+    width, height = 760, 560
+    image = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+
+    draw.text((30, 24), title, fill="black", font=font)
+    draw.text((330, 70), "Predicted label", fill="black", font=font)
+    draw.text((28, 260), "True label", fill="black", font=font)
+
+    x0, y0 = 220, 120
+    cell_w, cell_h = 190, 150
+    max_value = max(int(cm.max()), 1)
+
+    for index, label in enumerate(CLASS_NAMES):
+        draw.text((x0 + index * cell_w + 72, y0 - 28), label, fill="black", font=font)
+        draw.text((x0 - 62, y0 + index * cell_h + 65), label, fill="black", font=font)
+
+    for row in range(2):
+        for col in range(2):
+            value = int(cm[row, col])
+            intensity = int(235 - 155 * (value / max_value))
+            color = (intensity, intensity + 12, 255)
+            left = x0 + col * cell_w
+            top = y0 + row * cell_h
+            right = left + cell_w
+            bottom = top + cell_h
+            draw.rectangle((left, top, right, bottom), fill=color, outline="black", width=2)
+            draw.text((left + 82, top + 64), str(value), fill="black", font=font)
+
+    draw.text((220, 455), f"Labels: {CLASS_NAMES[0]} = not offensive, {CLASS_NAMES[1]} = offensive", fill="black", font=font)
+    image.save(output_path)
