@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Also run the transformer-embedding experiment. This requires a working transformers/torch setup.",
     )
+    parser.add_argument(
+        "--include_finetuning",
+        action="store_true",
+        help="Also run full transformer sequence-classification fine-tuning.",
+    )
     return parser.parse_args()
 
 
@@ -63,6 +68,25 @@ def main() -> None:
                 sys.executable,
                 "-m",
                 "src.train_transformer_embeddings",
+                "--train_path",
+                "data/raw/olid-training-v1.0.tsv",
+                "--test_path",
+                "data/processed/olid-test-levela-labeled.tsv",
+                "--text_col",
+                "tweet",
+                "--label_col",
+                "subtask_a",
+                "--output_dir",
+                "outputs_final",
+            ]
+        )
+
+    if args.include_finetuning:
+        run_command(
+            [
+                sys.executable,
+                "-m",
+                "src.train_transformer_finetune",
                 "--train_path",
                 "data/raw/olid-training-v1.0.tsv",
                 "--test_path",

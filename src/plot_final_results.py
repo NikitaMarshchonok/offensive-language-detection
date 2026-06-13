@@ -22,6 +22,7 @@ MODEL_LABELS = {
     "tfidf_linear_svm": "TF-IDF + Linear SVM",
     "tfidf_complement_naive_bayes": "TF-IDF + Complement NB",
     "transformer_minilm_logistic_regression": "Transformer Embeddings + Logistic Regression",
+    "finetuned_minilm_transformer": "Fine-tuned Transformer",
 }
 
 

@@ -72,18 +72,18 @@ These methods are fast, interpretable, and useful for comparison, but they are n
 The modern approach is implemented in:
 
 ```text
+src/train_transformer_finetune.py
+```
+
+It fine-tunes `sentence-transformers/all-MiniLM-L6-v2` as a transformer sequence-classification model directly on the OLID training set. This is the main recent method in the revised project.
+
+The repository also includes a lighter transformer-embedding baseline:
+
+```text
 src/train_transformer_embeddings.py
 ```
 
-It uses `sentence-transformers/all-MiniLM-L6-v2` to create contextual transformer sentence embeddings, then trains Logistic Regression on top of those embeddings. This is lighter than full fine-tuning, but it gives the project a recent transformer-based representation method.
-
-The repository also includes:
-
-```text
-src/train_transformer.py
-```
-
-for full DistilBERT-style fine-tuning when a working `torch`, `transformers`, `datasets`, and `accelerate` environment is available.
+It uses the same transformer encoder to create contextual sentence embeddings, then trains Logistic Regression on top of those embeddings.
 
 ---
 
@@ -116,12 +116,13 @@ The official test set contains:
 
 | Model | Accuracy | Precision OFF | Recall OFF | F1 OFF | Macro F1 |
 |---|---:|---:|---:|---:|---:|
+| Fine-tuned Transformer | 0.8430 | 0.7692 | 0.6250 | 0.6897 | 0.7923 |
 | Transformer Embeddings + Logistic Regression | 0.7779 | 0.5939 | 0.6458 | 0.6188 | 0.7310 |
 | TF-IDF + Logistic Regression | 0.7791 | 0.6033 | 0.6083 | 0.6058 | 0.7262 |
 | TF-IDF + Complement Naive Bayes | 0.7988 | 0.7134 | 0.4667 | 0.5642 | 0.7167 |
 | TF-IDF + Linear SVM | 0.7744 | 0.6009 | 0.5708 | 0.5855 | 0.7153 |
 
-The transformer-embedding model achieves the best Macro F1-score and offensive-class F1-score. TF-IDF + Logistic Regression is the strongest classical baseline.
+The fine-tuned transformer achieves the best Accuracy, Macro F1-score, and offensive-class F1-score. TF-IDF + Logistic Regression is the strongest classical baseline.
 
 ---
 
@@ -147,6 +148,29 @@ Run the transformer-embedding experiment as well:
 
 ```bash
 python -m src.run_final_experiment --include_transformer
+```
+
+Run the full fine-tuned transformer experiment as well:
+
+```bash
+python -m src.run_final_experiment --include_finetuning
+```
+
+Run all verified experiments:
+
+```bash
+python -m src.run_final_experiment --include_transformer --include_finetuning
+```
+
+Run the fine-tuned transformer experiment directly:
+
+```bash
+python -m src.train_transformer_finetune \
+  --train_path data/raw/olid-training-v1.0.tsv \
+  --test_path data/processed/olid-test-levela-labeled.tsv \
+  --text_col tweet \
+  --label_col subtask_a \
+  --output_dir outputs_final
 ```
 
 Run the transformer-embedding experiment directly:
@@ -209,4 +233,4 @@ Automatic moderation systems can make mistakes. They should support human modera
 
 ## Main Conclusion
 
-The project now aligns with recent offensive-language detection research. TF-IDF models are used as classical baselines, and a transformer-based contextual representation method is included and evaluated for modern comparison. The best overall model is **Transformer Embeddings + Logistic Regression**, with Macro F1-score `0.7310` and offensive-class F1-score `0.6188`. The best classical baseline is **TF-IDF + Logistic Regression**, with Macro F1-score `0.7262`.
+The project now aligns with recent offensive-language detection research. TF-IDF models are used as classical baselines, and a fine-tuned transformer classifier is included and evaluated for modern comparison. The best overall model is **Fine-tuned Transformer**, with Macro F1-score `0.7923` and offensive-class F1-score `0.6897`. The best classical baseline is **TF-IDF + Logistic Regression**, with Macro F1-score `0.7262`.

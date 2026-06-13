@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This project investigates automatic offensive language detection in short social-media texts. The task is binary classification: identifying whether a post is offensive (`OFF`) or not offensive (`NOT`). In the revised version, TF-IDF based machine-learning models are treated only as classical baselines, while the project adds a recent transformer-based method using contextual sentence embeddings. The implemented pipeline includes dataset preparation, preprocessing, baseline training, transformer-embedding classification, evaluation, and report-ready result generation.
+This project investigates automatic offensive language detection in short social-media texts. The task is binary classification: identifying whether a post is offensive (`OFF`) or not offensive (`NOT`). In the revised version, TF-IDF based machine-learning models are treated only as classical baselines, while the project adds a recent fine-tuned transformer-based method. The implemented pipeline includes dataset preparation, preprocessing, baseline training, transformer fine-tuning, evaluation, and report-ready result generation.
 
 ---
 
@@ -68,11 +68,11 @@ The classical baseline pipeline uses text cleaning, TF-IDF vectorization with un
 
 ### 5.2 Transformer-Based Approach
 
-The modern approach is implemented in `src/train_transformer_embeddings.py`. It uses a pre-trained transformer encoder, `sentence-transformers/all-MiniLM-L6-v2`, to create contextual sentence embeddings. A Logistic Regression classifier is then trained on top of these dense transformer embeddings.
+The main modern approach is implemented in `src/train_transformer_finetune.py`. It fine-tunes a pre-trained transformer encoder, `sentence-transformers/all-MiniLM-L6-v2`, as a sequence-classification model directly on the OLID training set. This is the closest implemented method to the recent BERT-family fine-tuning approach commonly used in current offensive-language detection research.
 
-This approach is lighter than full fine-tuning of DistilBERT or BERTweet, but it still follows the recent transformer-based direction in the literature: the text representation is contextual and produced by a transformer encoder rather than by sparse word-count statistics. The script supports local cached models by default and can download the model with `--allow_download` when internet access is available.
+The project also includes a lighter transformer-embedding variant in `src/train_transformer_embeddings.py`. That script uses the same pre-trained transformer encoder to create contextual sentence embeddings and trains Logistic Regression on top of them. It is useful as a faster transformer baseline, while the fine-tuned transformer is the main recent method.
 
-A full fine-tuning script for DistilBERT-style models is also provided in `src/train_transformer.py`, but it depends on a working `transformers`, `datasets`, `accelerate`, and `torch` environment.
+The older `src/train_transformer.py` script is kept as an optional Hugging Face `Trainer`-based path for DistilBERT-style models, but the final verified transformer result in this report comes from the custom fine-tuning script.
 
 ---
 
@@ -103,17 +103,18 @@ The verified local experiment was run on the official OLID Level A test set. The
 
 | Model | Accuracy | Precision OFF | Recall OFF | F1 OFF | Macro F1 |
 |---|---:|---:|---:|---:|---:|
+| Fine-tuned Transformer | 0.8430 | 0.7692 | 0.6250 | 0.6897 | 0.7923 |
 | Transformer Embeddings + Logistic Regression | 0.7779 | 0.5939 | 0.6458 | 0.6188 | 0.7310 |
 | TF-IDF + Logistic Regression | 0.7791 | 0.6033 | 0.6083 | 0.6058 | 0.7262 |
 | TF-IDF + Complement Naive Bayes | 0.7988 | 0.7134 | 0.4667 | 0.5642 | 0.7167 |
 | TF-IDF + Linear SVM | 0.7744 | 0.6009 | 0.5708 | 0.5855 | 0.7153 |
 
-Although Complement Naive Bayes achieved the highest accuracy, the transformer-embedding model achieved the best Macro F1-score and the best offensive-class F1-score. Among the classical baselines, **TF-IDF + Logistic Regression** is the strongest baseline.
+The fine-tuned transformer achieved the best overall performance across the most important metrics: accuracy, offensive-class F1-score, and Macro F1-score. Among the classical baselines, **TF-IDF + Logistic Regression** is the strongest baseline.
 
-The transformer-embedding experiment is implemented and can be executed with:
+The fine-tuned transformer experiment can be executed with:
 
 ```bash
-python -m src.train_transformer_embeddings \
+python -m src.train_transformer_finetune \
   --train_path data/raw/olid-training-v1.0.tsv \
   --test_path data/processed/olid-test-levela-labeled.tsv \
   --text_col tweet \
@@ -121,7 +122,7 @@ python -m src.train_transformer_embeddings \
   --output_dir outputs_final
 ```
 
-The transformer confusion matrix shows 155 correctly detected offensive examples out of 240, compared with 146 for the best TF-IDF baseline. This indicates improved recall for the offensive class, which is important for moderation-support scenarios.
+The fine-tuned transformer confusion matrix shows 150 correctly detected offensive examples out of 240, with only 45 false positives for the `NOT` class. This model provides the strongest balance between detecting offensive content and avoiding excessive false positives.
 
 ---
 
@@ -129,9 +130,9 @@ The transformer confusion matrix shows 155 correctly detected offensive examples
 
 The results show that classical TF-IDF models provide a reasonable baseline for offensive-language detection, but they remain limited. Sparse TF-IDF features do not model deep context, implicit offensiveness, sarcasm, pragmatic meaning, or domain-specific usage. These limitations are exactly why recent research has moved toward transformer-based approaches.
 
-The revised project therefore positions the classical models correctly: they are not presented as recent state of the art, but as transparent baselines. The transformer-embedding model gives the project a modern method aligned with recent scientific papers and slightly improves Macro F1-score and offensive-class F1-score over the strongest TF-IDF baseline.
+The revised project therefore positions the classical models correctly: they are not presented as recent state of the art, but as transparent baselines. The fine-tuned transformer gives the project a modern method aligned with recent scientific papers and substantially improves Macro F1-score and offensive-class F1-score over the strongest TF-IDF baseline.
 
-The confusion matrix for Logistic Regression shows that it correctly detects 146 out of 240 offensive examples, but still misses 94 offensive examples. This confirms that offensive-class recall remains a key challenge.
+The confusion matrix for the fine-tuned transformer shows that it correctly detects 150 out of 240 offensive examples and reduces false positives compared with the transformer-embedding model. Offensive-class recall remains a key challenge, but the fine-tuned transformer is clearly stronger than the classical baselines overall.
 
 ---
 
@@ -145,7 +146,7 @@ The project avoids displaying raw offensive examples and focuses on aggregate me
 
 ## 11. Limitations and Future Work
 
-The main limitation of the transformer experiment is that it uses frozen sentence embeddings rather than full task-specific fine-tuning. Future work should run full DistilBERT/BERTweet fine-tuning in a clean environment, preferably with GPU or Apple Silicon MPS support.
+The main limitation of the transformer experiment is that it fine-tunes `all-MiniLM-L6-v2` rather than a tweet-specific model such as BERTweet or a hate-speech-specific model such as HateBERT. Future work should fine-tune BERTweet, HateBERT, RoBERTa, or XLM-R and compare them on the same OLID test set.
 
 Additional future improvements include fine-tuning DistilBERT, BERTweet, HateBERT, or RoBERTa on OLID; testing cross-lingual models such as XLM-R; using recent datasets such as EDOS; adding error analysis; testing explainability methods; and extending the system to multilingual settings, for example Hebrew offensive-language detection.
 
@@ -153,7 +154,7 @@ Additional future improvements include fine-tuning DistilBERT, BERTweet, HateBER
 
 ## 12. Conclusion
 
-This project implements an offensive-language detection pipeline and revises the methodology to align with recent scientific work. The TF-IDF models are now clearly presented as classical baselines, while the project includes and evaluates a transformer-based approach using contextual sentence embeddings. The best overall model is Transformer Embeddings + Logistic Regression, with a Macro F1-score of 0.7310 and offensive-class F1-score of 0.6188 on the official OLID Level A test set. The best classical baseline is TF-IDF + Logistic Regression, with a Macro F1-score of 0.7262 and offensive-class F1-score of 0.6058.
+This project implements an offensive-language detection pipeline and revises the methodology to align with recent scientific work. The TF-IDF models are now clearly presented as classical baselines, while the project includes and evaluates a fine-tuned transformer classifier. The best overall model is the Fine-tuned Transformer, with a Macro F1-score of 0.7923 and offensive-class F1-score of 0.6897 on the official OLID Level A test set. The best classical baseline is TF-IDF + Logistic Regression, with a Macro F1-score of 0.7262 and offensive-class F1-score of 0.6058.
 
 The revised project therefore addresses the main feedback: it is now explicitly based on recent offensive-language detection research and includes a modern transformer-based method in addition to the older baseline models.
 

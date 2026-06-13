@@ -61,17 +61,17 @@ OLID Dataset → Preprocessing → Representation → Model Training → Evaluat
 | Logistic Regression | TF-IDF | Classical baseline |
 | Linear SVM | TF-IDF | Classical baseline |
 | Complement Naive Bayes | TF-IDF | Classical baseline |
-| Logistic Regression | Transformer embeddings | Recent transformer-based approach |
+| Fine-tuned classifier | Transformer encoder | Main recent transformer-based approach |
+| Logistic Regression | Transformer embeddings | Lightweight transformer baseline |
 
 ---
 
 ## Slide 8 — Transformer-Based Approach
 
 - Encoder: `sentence-transformers/all-MiniLM-L6-v2`
-- Representation: contextual sentence embeddings
-- Classifier: Logistic Regression
-- Purpose: compare modern contextual representations with sparse TF-IDF baselines
-- Full DistilBERT-style fine-tuning script is also included
+- Main method: full sequence-classification fine-tuning on OLID
+- Additional method: contextual sentence embeddings + Logistic Regression
+- Purpose: compare modern transformer-based methods with sparse TF-IDF baselines
 
 ---
 
@@ -92,12 +92,13 @@ Main metric: **Macro F1-score**
 
 | Model | Accuracy | F1 OFF | Macro F1 |
 |---|---:|---:|---:|
+| Fine-tuned Transformer | 0.8430 | 0.6897 | 0.7923 |
 | Transformer Embeddings + Logistic Regression | 0.7779 | 0.6188 | 0.7310 |
 | TF-IDF + Logistic Regression | 0.7791 | 0.6058 | 0.7262 |
 | TF-IDF + Complement Naive Bayes | 0.7988 | 0.5642 | 0.7167 |
 | TF-IDF + Linear SVM | 0.7744 | 0.5855 | 0.7153 |
 
-Best overall model: **Transformer Embeddings + Logistic Regression**.
+Best overall model: **Fine-tuned Transformer**.
 Best classical baseline: **TF-IDF + Logistic Regression**.
 
 ---
@@ -106,7 +107,7 @@ Best classical baseline: **TF-IDF + Logistic Regression**.
 
 - TF-IDF baselines are fast and reproducible.
 - They are limited in contextual understanding.
-- Transformer embeddings better match recent NLP research and improve offensive-class F1.
+- Fine-tuned transformers better match recent NLP research and substantially improve Macro F1.
 - Offensive-class recall remains challenging.
 - The system should support human moderation rather than replace it.
 
