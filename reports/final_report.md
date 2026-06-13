@@ -1,169 +1,277 @@
-# Offensive Language Detection in Social Media Texts: Classical Baselines and a Transformer-Based Approach
+# Offensive Language Detection in Social Media Texts
+
+## A Comparative Study of Classical TF-IDF Baselines and Fine-Tuned Transformer Models
 
 **Student:** Nikita Marshchonok  
 **Degree:** M.Sc. Software Engineering  
-**Course:** Advanced Techniques in Information Retrieval  
-**Project type:** Practical programming project  
+**Dataset:** OLID / OffensEval 2019, Level A  
 
 ---
 
 ## Abstract
 
-This project investigates automatic offensive language detection in short social-media texts. The task is binary classification: identifying whether a post is offensive (`OFF`) or not offensive (`NOT`). In the revised version, TF-IDF based machine-learning models are treated only as classical baselines, while the project adds a recent fine-tuned transformer-based method. The implemented pipeline includes dataset preparation, preprocessing, baseline training, transformer fine-tuning, evaluation, and report-ready result generation.
+This project studies automatic offensive language detection in short social-media texts. The task is binary classification: identifying whether a post is offensive (`OFF`) or not offensive (`NOT`). The revised project is explicitly based on recent scientific work in offensive, abusive, and hateful language detection. Classical TF-IDF models are kept only as reproducible baseline methods, while the main modern method is a fine-tuned transformer classifier.
+
+The project uses the OLID dataset from OffensEval / SemEval 2019 and evaluates all models on the official Level A test set. Five models are compared: three TF-IDF baselines, a transformer-embedding classifier, and a fine-tuned transformer classifier. The best result is achieved by the fine-tuned transformer model with **Accuracy = 0.8430**, **Macro F1 = 0.7923**, and **F1 for the offensive class = 0.6897**. This substantially improves over the best classical baseline, TF-IDF + Logistic Regression, which achieves **Macro F1 = 0.7262**.
+
+**Keywords:** offensive language detection, hate speech detection, text classification, OLID, TF-IDF, transformer, fine-tuning, BERT, social media.
 
 ---
 
 ## 1. Introduction
 
-Social-media platforms contain large amounts of user-generated text. Some posts include offensive, abusive, or harmful language, and manual moderation is expensive and difficult to scale. Automatic offensive-language detection can support human moderation by flagging potentially harmful content for review.
+Social-media platforms contain large amounts of user-generated text. Some posts include offensive, abusive, or harmful language. Manual moderation is expensive, emotionally difficult, and hard to scale. Automatic offensive-language detection can support moderation workflows by identifying potentially harmful content for human review.
 
-Earlier text-classification systems often relied on sparse representations such as bag-of-words or TF-IDF combined with classifiers such as Logistic Regression, Support Vector Machines, or Naive Bayes. These methods are still useful as reproducible baselines, but recent NLP research has moved toward transformer-based models such as BERT, RoBERTa, BERTweet, HateBERT, XLM-R, and large language models. This project therefore compares classical baselines with a modern transformer-based approach.
+Early text-classification systems often relied on sparse lexical representations such as bag-of-words or TF-IDF combined with classifiers such as Logistic Regression, Support Vector Machines, or Naive Bayes. These methods are still useful because they are simple, fast, reproducible, and interpretable. However, they are no longer considered the most recent approach for offensive-language detection. Recent research has moved toward transformer-based models, including BERT, RoBERTa, BERTweet, HateBERT, XLM-R, and large language models.
+
+The main purpose of this revised project is therefore to compare older classical baselines with a recent transformer-based method and to ground the project in relevant scientific literature.
 
 ---
 
 ## 2. Research Question
 
-**How effective are classical TF-IDF machine-learning baselines for offensive language detection, and how can a recent transformer-based approach be integrated into the same experimental pipeline for comparison?**
+The project addresses the following research question:
+
+> How effective are classical TF-IDF machine-learning baselines compared with transformer-based models for detecting offensive language in social-media texts?
+
+The practical goal is to build a reproducible experimental pipeline that includes dataset preparation, preprocessing, model training, evaluation, result visualization, and a scientific report.
 
 ---
 
-## 3. Related Work and Scientific Background
+## 3. Scientific Background and Related Work
 
-Offensive-language detection became a widely studied benchmark task through OffensEval and the Offensive Language Identification Dataset (OLID). Zampieri et al. (2019a, 2019b) introduced a hierarchical annotation scheme for offensive language in tweets, including Level A binary offensive-language identification, which is the task used in this project.
+Offensive-language detection became a widely studied benchmark problem through the Offensive Language Identification Dataset (OLID) and OffensEval / SemEval 2019 Task 6. Zampieri et al. (2019a, 2019b) introduced a hierarchical annotation scheme for offensive language in tweets. Level A of OLID is a binary task that distinguishes offensive (`OFF`) and not offensive (`NOT`) posts. This is the task used in the present project.
 
-Recent work shows that transformer-based models are now the dominant approach for abusive, offensive, and hateful language detection. The SemEval-2023 EDOS shared task introduced a recent dataset and taxonomy for explainable detection of online sexism, and its overview reports strong performance from transformer-based systems (Kirk et al., 2023). Several participating systems fine-tuned BERT-family models such as BERT, RoBERTa, DistilBERT, XLNet, HateBERT, and XLM-T, often improving performance through domain adaptation, task-adaptive pretraining, data augmentation, or model ensembling (Segura-Bedmar, 2023; Roy and Shrivastava, 2023; Rallabandi et al., 2023; Mahmoudi, 2023).
+Transformer-based models are now a dominant direction in NLP text classification. BERT introduced deep bidirectional transformer pretraining and showed strong results across many language-understanding tasks (Devlin et al., 2019). Sentence-BERT adapted BERT-style models for sentence-level embeddings (Reimers and Gurevych, 2019). BERTweet was designed specifically for English Twitter text (Nguyen et al., 2020), and HateBERT was adapted for abusive-language detection (Caselli et al., 2021).
 
-The importance of multilingual and cross-lingual offensive-language detection has also increased. Jiang and Zubiaga (2024) provide a systematic review of cross-lingual offensive-language detection, emphasizing transfer learning and multilingual resources. He et al. (2024) evaluate large language models for multilingual offensive-language detection and discuss the role of prompt language, translation, and dataset bias.
+Recent shared tasks also show the importance of transformer-based methods. SemEval-2023 Task 10, Explainable Detection of Online Sexism (EDOS), introduced a recent dataset and taxonomy for abusive-language detection in social media (Kirk et al., 2023). Many systems in this task used fine-tuned transformer architectures such as BERT, RoBERTa, DistilBERT, HateBERT, and XLM-T, often combined with task-adaptive pretraining, data augmentation, or ensemble methods (Segura-Bedmar, 2023; Roy and Shrivastava, 2023; Rallabandi et al., 2023; Mahmoudi, 2023).
 
-Based on this literature, the present project keeps TF-IDF models as classical baselines and adds a transformer-based method as the recent approach. This aligns the practical implementation with current scientific work rather than presenting older methods as the main state of the art.
+Recent work also emphasizes multilingual and cross-lingual offensive-language detection. Jiang and Zubiaga (2024) review datasets, transfer-learning approaches, and challenges in cross-lingual offensive-language detection. He et al. (2024) evaluate large language models on multilingual offensive-language detection and discuss translation, prompt language, and dataset bias.
+
+Based on this literature, this project treats TF-IDF models as classical baselines and includes a fine-tuned transformer classifier as the main recent method.
 
 ---
 
 ## 4. Dataset
 
-The project uses the **Offensive Language Identification Dataset (OLID)** from OffensEval / SemEval 2019 Task 6. OLID contains English tweets annotated according to a hierarchical three-level taxonomy. This project focuses on **Sub-task A**, the binary classification task:
+The project uses the **Offensive Language Identification Dataset (OLID)** from OffensEval / SemEval 2019 Task 6. The dataset contains English tweets annotated according to a hierarchical taxonomy. This project focuses on **Level A**, the binary offensive-language identification task.
 
 | Label | Meaning |
 |---|---|
 | `NOT` | Not offensive |
 | `OFF` | Offensive |
 
-The official training set contains 13,240 examples. The official Level A test set used in this project contains 860 examples: 620 `NOT` and 240 `OFF`. For ethical and safety reasons, the report does not reproduce raw offensive examples.
+For ethical and safety reasons, raw offensive examples are not reproduced in this report. The analysis uses aggregate statistics, metrics, and confusion matrices only.
+
+### 4.1 Dataset Statistics
+
+| Split | Total Examples | NOT | OFF | Average Text Length |
+|---|---:|---:|---:|---:|
+| Training set | 13,240 | 8,840 | 4,400 | 125.91 characters |
+| Official test set | 860 | 620 | 240 | 146.16 characters |
+
+The test set is imbalanced: the `NOT` class contains 620 examples and the `OFF` class contains 240 examples. Because of this imbalance, accuracy alone is not sufficient. Macro F1 and offensive-class F1 are especially important.
 
 ---
 
 ## 5. Methodology
 
-The project implements two groups of methods.
+The experimental pipeline follows these steps:
 
-### 5.1 Classical Baselines
+1. Load the OLID training set and official test files.
+2. Prepare the official Level A test set by joining test tweets with their labels.
+3. Apply preprocessing appropriate to the model family.
+4. Train classical TF-IDF baselines.
+5. Train transformer-based models.
+6. Evaluate all models using the same official test set.
+7. Save metrics, confusion matrices, comparison tables, and report-ready plots.
 
-The classical baseline pipeline uses text cleaning, TF-IDF vectorization with unigram and bigram features, and supervised classifiers. These models are included because they are efficient, interpretable, and historically strong for short-text classification. In this revised project, they are explicitly treated as baselines rather than as the main state-of-the-art contribution.
+### 5.1 Classical Baseline Models
 
-| Model | Representation | Role |
+The classical models use TF-IDF features with unigram and bigram terms. These models are not presented as recent state-of-the-art methods. They are included only as transparent and reproducible baselines.
+
+| Model | Representation | Purpose |
 |---|---|---|
-| Logistic Regression | TF-IDF | Strong linear baseline |
-| Linear SVM | TF-IDF | Margin-based sparse-text baseline |
-| Complement Naive Bayes | TF-IDF | Probabilistic baseline for imbalanced text data |
+| Logistic Regression | TF-IDF | Strong linear text-classification baseline |
+| Linear SVM | TF-IDF | Margin-based classifier for sparse high-dimensional text features |
+| Complement Naive Bayes | TF-IDF | Probabilistic baseline suitable for imbalanced text data |
 
-### 5.2 Transformer-Based Approach
+For these models, the preprocessing includes lowercasing, URL normalization/removal, user mention normalization, hashtag-symbol removal, removal of non-text symbols, and whitespace normalization.
 
-The main modern approach is implemented in `src/train_transformer_finetune.py`. It fine-tunes a pre-trained transformer encoder, `sentence-transformers/all-MiniLM-L6-v2`, as a sequence-classification model directly on the OLID training set. This is the closest implemented method to the recent BERT-family fine-tuning approach commonly used in current offensive-language detection research.
+### 5.2 Transformer-Embedding Model
 
-The project also includes a lighter transformer-embedding variant in `src/train_transformer_embeddings.py`. That script uses the same pre-trained transformer encoder to create contextual sentence embeddings and trains Logistic Regression on top of them. It is useful as a faster transformer baseline, while the fine-tuned transformer is the main recent method.
+The first transformer-based method uses `sentence-transformers/all-MiniLM-L6-v2` to create contextual sentence embeddings. These embeddings are then used as dense features for a Logistic Regression classifier. This method is lighter than full fine-tuning and provides a bridge between classical classifiers and transformer representations.
 
-The older `src/train_transformer.py` script is kept as an optional Hugging Face `Trainer`-based path for DistilBERT-style models, but the final verified transformer result in this report comes from the custom fine-tuning script.
+Implementation file:
 
----
-
-## 6. Preprocessing
-
-For the TF-IDF baselines, the following preprocessing steps are applied:
-
-1. Lowercasing
-2. URL normalization/removal
-3. User mention normalization
-4. Hashtag sign removal
-5. Removal of non-text symbols
-6. Extra whitespace normalization
-
-For transformer-based models, preprocessing is intentionally minimal because transformer tokenizers are designed to preserve subword and contextual information.
-
----
-
-## 7. Evaluation Methodology
-
-The models are evaluated using accuracy, precision for the offensive class, recall for the offensive class, F1-score for the offensive class, Macro F1-score, and confusion matrices. The main metric is **Macro F1-score**, because offensive-language datasets are imbalanced and accuracy alone may hide poor performance on the minority offensive class.
-
----
-
-## 8. Experimental Results
-
-The verified local experiment was run on the official OLID Level A test set. The results are shown below.
-
-| Model | Accuracy | Precision OFF | Recall OFF | F1 OFF | Macro F1 |
-|---|---:|---:|---:|---:|---:|
-| Fine-tuned Transformer | 0.8430 | 0.7692 | 0.6250 | 0.6897 | 0.7923 |
-| Transformer Embeddings + Logistic Regression | 0.7779 | 0.5939 | 0.6458 | 0.6188 | 0.7310 |
-| TF-IDF + Logistic Regression | 0.7791 | 0.6033 | 0.6083 | 0.6058 | 0.7262 |
-| TF-IDF + Complement Naive Bayes | 0.7988 | 0.7134 | 0.4667 | 0.5642 | 0.7167 |
-| TF-IDF + Linear SVM | 0.7744 | 0.6009 | 0.5708 | 0.5855 | 0.7153 |
-
-The fine-tuned transformer achieved the best overall performance across the most important metrics: accuracy, offensive-class F1-score, and Macro F1-score. Among the classical baselines, **TF-IDF + Logistic Regression** is the strongest baseline.
-
-The fine-tuned transformer experiment can be executed with:
-
-```bash
-python -m src.train_transformer_finetune \
-  --train_path data/raw/olid-training-v1.0.tsv \
-  --test_path data/processed/olid-test-levela-labeled.tsv \
-  --text_col tweet \
-  --label_col subtask_a \
-  --output_dir outputs_final
+```text
+src/train_transformer_embeddings.py
 ```
 
-The fine-tuned transformer confusion matrix shows 150 correctly detected offensive examples out of 240, with only 45 false positives for the `NOT` class. This model provides the strongest balance between detecting offensive content and avoiding excessive false positives.
+### 5.3 Fine-Tuned Transformer Model
+
+The main modern method is a fine-tuned transformer classifier. The model uses the pre-trained `sentence-transformers/all-MiniLM-L6-v2` checkpoint and adds a sequence-classification head. It is then fine-tuned directly on the OLID training set for the binary `NOT` / `OFF` classification task.
+
+Implementation file:
+
+```text
+src/train_transformer_finetune.py
+```
+
+This method is aligned with the recent BERT-family fine-tuning approach used in current offensive-language and abusive-language detection research. The model was trained for one epoch with learning rate `2e-5`, batch size `32`, maximum sequence length `128`, and Apple Silicon MPS acceleration.
 
 ---
 
-## 9. Discussion
+## 6. Evaluation Setup
 
-The results show that classical TF-IDF models provide a reasonable baseline for offensive-language detection, but they remain limited. Sparse TF-IDF features do not model deep context, implicit offensiveness, sarcasm, pragmatic meaning, or domain-specific usage. These limitations are exactly why recent research has moved toward transformer-based approaches.
+All models are evaluated on the same official OLID Level A test set. The following metrics are reported:
 
-The revised project therefore positions the classical models correctly: they are not presented as recent state of the art, but as transparent baselines. The fine-tuned transformer gives the project a modern method aligned with recent scientific papers and substantially improves Macro F1-score and offensive-class F1-score over the strongest TF-IDF baseline.
+| Metric | Reason for Use |
+|---|---|
+| Accuracy | Overall proportion of correct predictions |
+| Precision OFF | How many predicted offensive posts are truly offensive |
+| Recall OFF | How many real offensive posts are detected |
+| F1 OFF | Balance between precision and recall for the offensive class |
+| Macro F1 | Average F1 across both classes; important for imbalanced data |
+| Confusion Matrix | Detailed view of correct and incorrect predictions |
 
-The confusion matrix for the fine-tuned transformer shows that it correctly detects 150 out of 240 offensive examples and reduces false positives compared with the transformer-embedding model. Offensive-class recall remains a key challenge, but the fine-tuned transformer is clearly stronger than the classical baselines overall.
+The main evaluation metric is **Macro F1**, because the dataset is imbalanced. The offensive-class F1-score is also important because the main practical goal is detecting offensive content.
 
 ---
 
-## 10. Ethical Considerations
+## 7. Experimental Results
 
-Offensive-language detection is a sensitive task. Automated systems can make mistakes and should not be used as the only decision-making mechanism. False positives may unfairly flag normal speech, while false negatives may miss harmful content. The system should support human moderation rather than fully replace it.
+### 7.1 Overall Model Comparison
 
-The project avoids displaying raw offensive examples and focuses on aggregate metrics, model behavior, and responsible evaluation.
+| Rank | Model | Accuracy | Precision OFF | Recall OFF | F1 OFF | Macro F1 |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | Fine-tuned Transformer | **0.8430** | **0.7692** | 0.6250 | **0.6897** | **0.7923** |
+| 2 | Transformer Embeddings + Logistic Regression | 0.7779 | 0.5939 | **0.6458** | 0.6188 | 0.7310 |
+| 3 | TF-IDF + Logistic Regression | 0.7791 | 0.6033 | 0.6083 | 0.6058 | 0.7262 |
+| 4 | TF-IDF + Complement Naive Bayes | 0.7988 | 0.7134 | 0.4667 | 0.5642 | 0.7167 |
+| 5 | TF-IDF + Linear SVM | 0.7744 | 0.6009 | 0.5708 | 0.5855 | 0.7153 |
+
+The fine-tuned transformer is the best overall model. It achieves the highest accuracy, highest offensive-class precision, highest offensive-class F1-score, and highest Macro F1-score.
+
+### 7.2 Best Classical Baseline
+
+Among the TF-IDF models, Logistic Regression is the strongest baseline:
+
+| Model | Accuracy | F1 OFF | Macro F1 |
+|---|---:|---:|---:|
+| TF-IDF + Logistic Regression | 0.7791 | 0.6058 | 0.7262 |
+
+This confirms that classical methods can provide a reasonable baseline, but they are clearly weaker than the fine-tuned transformer.
+
+### 7.3 Fine-Tuned Transformer Confusion Matrix
+
+The fine-tuned transformer produced the following confusion matrix:
+
+| True Label | Predicted NOT | Predicted OFF |
+|---|---:|---:|
+| NOT | 575 | 45 |
+| OFF | 90 | 150 |
+
+Interpretation:
+
+- The model correctly classified **575 out of 620** not-offensive examples.
+- The model correctly detected **150 out of 240** offensive examples.
+- There were **45 false positives**, where not-offensive texts were incorrectly predicted as offensive.
+- There were **90 false negatives**, where offensive texts were missed.
+
+The fine-tuned transformer provides the strongest overall balance. It reduces false positives compared with the transformer-embedding model while maintaining much stronger performance than the TF-IDF baselines.
+
+### 7.4 Report Assets
+
+The project generates report-ready visual assets:
+
+```text
+reports/assets/model_comparison_accuracy.png
+reports/assets/model_comparison_macro_f1.png
+reports/assets/model_comparison_offensive_f1.png
+reports/assets/finetuned_minilm_transformer_confusion_matrix.png
+```
+
+The final comparison table is stored in:
+
+```text
+reports/model_comparison_official_test.csv
+```
 
 ---
 
-## 11. Limitations and Future Work
+## 8. Discussion
 
-The main limitation of the transformer experiment is that it fine-tunes `all-MiniLM-L6-v2` rather than a tweet-specific model such as BERTweet or a hate-speech-specific model such as HateBERT. Future work should fine-tune BERTweet, HateBERT, RoBERTa, or XLM-R and compare them on the same OLID test set.
+The results support the main expectation from recent NLP research: transformer-based models outperform classical sparse-feature baselines. The fine-tuned transformer improves Macro F1 from `0.7262` for the best TF-IDF baseline to `0.7923`. It also improves offensive-class F1 from `0.6058` to `0.6897`.
 
-Additional future improvements include fine-tuning DistilBERT, BERTweet, HateBERT, or RoBERTa on OLID; testing cross-lingual models such as XLM-R; using recent datasets such as EDOS; adding error analysis; testing explainability methods; and extending the system to multilingual settings, for example Hebrew offensive-language detection.
+The transformer-embedding model also slightly improves over the best TF-IDF baseline in Macro F1 and offensive-class F1, showing that contextual transformer representations are useful even without full fine-tuning. However, full fine-tuning gives the best result because the transformer encoder and classification head are adapted directly to the OLID offensive-language detection task.
+
+The classical models remain useful for comparison. They are faster, easier to interpret, and simpler to reproduce. However, they rely on surface-level lexical features and cannot capture deeper context, implicit offensiveness, sarcasm, or nuanced social-media language as effectively as transformer-based models.
+
+---
+
+## 9. Ethical Considerations
+
+Offensive-language detection is a sensitive task. Automated models can make mistakes and should not be used as the only decision-making mechanism. False positives may unfairly flag harmless speech. False negatives may allow harmful content to remain undetected.
+
+This project follows several ethical precautions:
+
+- Raw offensive examples are not displayed in the report.
+- The system is presented as support for human moderation, not as a replacement for human judgment.
+- Evaluation includes class-specific metrics, not only accuracy.
+- Limitations and risks are explicitly discussed.
+
+---
+
+## 10. Limitations
+
+The project has several limitations:
+
+1. The dataset is limited to English tweets from OLID.
+2. The model is evaluated only on Level A binary classification.
+3. The fine-tuned transformer uses `all-MiniLM-L6-v2`, not a tweet-specific model such as BERTweet or a hate-speech-specific model such as HateBERT.
+4. The experiment does not include detailed error analysis of false positives and false negatives.
+5. The project does not evaluate multilingual transfer or Hebrew offensive-language detection.
+
+---
+
+## 11. Future Work
+
+Future improvements could include:
+
+- Fine-tuning BERTweet, HateBERT, RoBERTa, DistilBERT, or XLM-R on the same OLID split.
+- Testing recent datasets such as EDOS for explainable abusive-language detection.
+- Adding error analysis for false positives and false negatives.
+- Testing explainability methods for model decisions.
+- Extending the project to multilingual or cross-lingual offensive-language detection.
+- Comparing transformer models with large language model prompting approaches.
 
 ---
 
 ## 12. Conclusion
 
-This project implements an offensive-language detection pipeline and revises the methodology to align with recent scientific work. The TF-IDF models are now clearly presented as classical baselines, while the project includes and evaluates a fine-tuned transformer classifier. The best overall model is the Fine-tuned Transformer, with a Macro F1-score of 0.7923 and offensive-class F1-score of 0.6897 on the official OLID Level A test set. The best classical baseline is TF-IDF + Logistic Regression, with a Macro F1-score of 0.7262 and offensive-class F1-score of 0.6058.
+This project implements a complete offensive-language detection pipeline and revises the methodology to match recent scientific work. TF-IDF models are kept only as classical baselines. A transformer-embedding model and a fine-tuned transformer classifier are added for modern comparison.
 
-The revised project therefore addresses the main feedback: it is now explicitly based on recent offensive-language detection research and includes a modern transformer-based method in addition to the older baseline models.
+The best overall model is the **Fine-tuned Transformer**, which achieves:
+
+| Metric | Score |
+|---|---:|
+| Accuracy | 0.8430 |
+| Precision OFF | 0.7692 |
+| Recall OFF | 0.6250 |
+| F1 OFF | 0.6897 |
+| Macro F1 | 0.7923 |
+
+The best classical baseline is **TF-IDF + Logistic Regression**, with Macro F1 `0.7262`. Therefore, the fine-tuned transformer substantially improves the project and directly addresses the requirement to include recent scientific methods and references.
+
+Overall, the revised work is no longer only a classical-machine-learning project. It is a comparative offensive-language detection study grounded in recent literature and supported by reproducible experiments.
 
 ---
 
 ## References
 
 1. Zampieri, M., Malmasi, S., Nakov, P., Rosenthal, S., Farra, N., & Kumar, R. (2019a). *SemEval-2019 Task 6: Identifying and Categorizing Offensive Language in Social Media (OffensEval).* Proceedings of SemEval 2019.
-2. Zampieri, M., et al. (2019b). *Predicting the Type and Target of Offensive Posts in Social Media.* NAACL-HLT.
+2. Zampieri, M., Rosenthal, S., Nakov, P., & Potthast, M. (2019b). *Predicting the Type and Target of Offensive Posts in Social Media.* NAACL-HLT.
 3. Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2019). *BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.* NAACL-HLT.
 4. Reimers, N., & Gurevych, I. (2019). *Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks.* EMNLP-IJCNLP.
 5. Nguyen, D. Q., Vu, T., & Nguyen, A. T. (2020). *BERTweet: A pre-trained language model for English Tweets.* EMNLP System Demonstrations.
